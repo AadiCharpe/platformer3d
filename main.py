@@ -1,9 +1,13 @@
 from ursina import *
 from ursina.prefabs.first_person_controller import FirstPersonController
+from csv import reader
 app = Ursina()
-start = [[0, 0, 0, 0], [0, 0, -2, 0], [0, 0, 2, 0], [2, 0, 0, 0], [2, 0, -2, 0], [2, 0, 2, 0]]
-levels = [[[5, 0, 0, 0], [8, 0, 3, 0], [12, 1, 3, 0], [15, 2, 5, 0], [16, 2, 8, 0], [20, 2, 8, 0], [24, 2, 8, 0], [28, 2, 8, 0], [30, 2, 8, 0], [32, 2.5, 12, 0], [36, 3, 12, 0], [38, 3, 12, 0], [38, 5, 12, 0], [38, 7, 12, 0], [38, 3, 8, 0], [40, 3, 12, 0], [44, 3, 12, 4], [44, 3, 14, 4], [44, 3, 10, 4], [46, 3, 12, 4], [46, 3, 14, 4], [46, 3, 10, 4]], []]
-level = 0
+with open('leveldata.csv', 'r') as f:
+    lines = reader(f)
+    linelist = list(lines)
+    level = int(linelist[-1][0])
+    start = [[float(x) if '.' in x else int(x) for x in val.split('|')] for val in linelist[0]]
+    levels = [[[float(x) if '.' in x else int(x) for x in val.split('|')] for val in line] for line in linelist[1:-1]] + [[]]
 platforms = []
 
 class Platform(Entity):
