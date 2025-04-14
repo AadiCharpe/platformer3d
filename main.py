@@ -5,10 +5,11 @@ app = Ursina()
 with open('leveldata.csv', 'r') as f:
     lines = reader(f)
     linelist = list(lines)
-    level = int(linelist[-1][0])
+    level = 0
     start = [[float(x) if '.' in x else int(x) for x in val.split('|')] for val in linelist[0]]
-    levels = [[[float(x) if '.' in x else int(x) for x in val.split('|')] for val in line] for line in linelist[1:-1]] + [[]]
+    levels = [[[float(x) if '.' in x else int(x) for x in val.split('|')] for val in line] for line in linelist[1:]] + [[]]
 platforms = []
+spring = False
 
 class Platform(Entity):
     def __init__(self, position=(0,0,0), plat_id=0):
@@ -19,8 +20,8 @@ class Platform(Entity):
         super().__init__(model=model, scale=2, collider=model, texture='white_cube', color=rgb(self.colors[plat_id][0], self.colors[plat_id][1], self.colors[plat_id][2]), position=position)
 
 def update():
-    global level
-    if player.y < -1:
+    global level, spring
+    if player.y < -3:
         player.position = (0, 1, 0)
     for plat in platforms:
         if player.intersects(plat):
@@ -33,15 +34,17 @@ def update():
                     platforms.remove(plat)
                     destroy(plat)
             elif plat.plat_id == 3:
-                player.gravity = -2
+                player.jump_height = 15
+                player.gravity = 0.5
+                spring = True
             elif plat.plat_id == 4:
                 level += 1
                 createLevel()
                 player.position = (0, 1, 0)
-    if player.gravity < 0.75:
-        player.gravity += time.dt * 5
-    if player.gravity > 0.75:
+    if not spring:
+        player.jump_height = 3
         player.gravity = 0.75
+    spring = False
 
 def createLevel():
     if level != 0:
