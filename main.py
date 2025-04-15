@@ -5,7 +5,7 @@ app = Ursina()
 with open('leveldata.csv', 'r') as f:
     lines = reader(f)
     linelist = list(lines)
-    level = 2
+    level = 0
     start = [[float(x) if '.' in x else int(x) for x in val.split('|')] for val in linelist[0]]
     levels = [[[float(x) if '.' in x else int(x) for x in val.split('|')] for val in line] for line in linelist[1:]] + [[]]
 platforms = []
