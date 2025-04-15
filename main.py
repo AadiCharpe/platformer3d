@@ -5,7 +5,7 @@ app = Ursina()
 with open('leveldata.csv', 'r') as f:
     lines = reader(f)
     linelist = list(lines)
-    level = 0
+    level = 2
     start = [[float(x) if '.' in x else int(x) for x in val.split('|')] for val in linelist[0]]
     levels = [[[float(x) if '.' in x else int(x) for x in val.split('|')] for val in line] for line in linelist[1:]] + [[]]
 platforms = []
@@ -19,20 +19,27 @@ class Platform(Entity):
         model = 'cube' if plat_id % 2 == 0 else 'plane'
         super().__init__(model=model, scale=2, collider=model, texture='white_cube', color=rgb(self.colors[plat_id][0], self.colors[plat_id][1], self.colors[plat_id][2]), position=position)
 
+def reset():
+    player.position = (0, 1, 0)
+    for plat in platforms:
+        if plat.plat_id == 2:
+            plat.enable()
+            plat.timer = 0.75
+            plat.color = rgb(178, 178, 178)
+
 def update():
     global level, spring
     if player.y < -3:
-        player.position = (0, 1, 0)
+        reset()
     for plat in platforms:
         if player.intersects(plat):
             if plat.plat_id == 1:
-                player.position = (0, 1, 0)
+                reset()
             elif plat.plat_id == 2:
                 plat.timer -= time.dt
                 plat.color=rgb(178 + (1 - plat.timer) * 60, 178 + (1 - plat.timer) * 60, 178 + (1 - plat.timer) * 60)
                 if plat.timer <= 0:
-                    platforms.remove(plat)
-                    destroy(plat)
+                    plat.disable()
             elif plat.plat_id == 3:
                 player.jump_height = 15
                 player.gravity = 0.5
@@ -40,7 +47,7 @@ def update():
             elif plat.plat_id == 4:
                 level += 1
                 createLevel()
-                player.position = (0, 1, 0)
+                reset()
     if not spring:
         player.jump_height = 3
         player.gravity = 0.75
