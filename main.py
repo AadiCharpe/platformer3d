@@ -7,28 +7,31 @@ with open('leveldata.csv', 'r') as f:
     linelist = list(lines)
     level = 0
     start = [[float(x) if '.' in x else int(x) for x in val.split('|')] for val in linelist[0]]
-    levels = [[[float(x) if '.' in x else int(x) for x in val.split('|')] for val in line] for line in linelist[1:]] + [[]]
+    levels = [[[float(x) if '.' in x else int(x) for x in val.split('|')] for val in line] for line in linelist[1:]]
 platforms = []
 spring = False
+p_timer = -1
 
 class Platform(Entity):
     def __init__(self, position=(0,0,0), plat_id=0):
         self.plat_id = plat_id
-        self.colors = [[50, 50, 50], [232, 19, 19], [178, 178, 178], [245, 245, 17], [24, 232, 24]]
+        self.colors = [[50, 50, 50], [232, 19, 19], [178, 178, 178], [245, 245, 17], [24, 232, 24], [41, 58, 171], [32, 146, 199]]
         self.timer = 0.75
         model = 'cube' if plat_id % 2 == 0 else 'plane'
         super().__init__(model=model, scale=2, collider=model, texture='white_cube', color=rgb(self.colors[plat_id][0], self.colors[plat_id][1], self.colors[plat_id][2]), position=position)
 
 def reset():
+    global p_timer
     player.position = (0, 1, 0)
     for plat in platforms:
         if plat.plat_id == 2:
             plat.enable()
             plat.timer = 0.75
             plat.color = rgb(178, 178, 178)
+    p_timer = -1
 
 def update():
-    global level, spring
+    global level, spring, p_timer
     if player.y < -3:
         reset()
     for plat in platforms:
@@ -48,6 +51,14 @@ def update():
                 level += 1
                 createLevel()
                 reset()
+            elif plat.plat_id == 5:
+                p_timer = 5
+        if plat.plat_id == 6:
+            plat.enabled = p_timer > 0
+    if p_timer > 0:
+        p_timer -= time.dt
+        if p_timer <= 0:
+            p_timer = -1
     if not spring:
         player.jump_height = 3
         player.gravity = 0.75
