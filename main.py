@@ -11,6 +11,14 @@ with open('leveldata.csv', 'r') as f:
 platforms = []
 spring = False
 p_timer = -1
+jump_sound = Audio('sfx/jump.wav', autoplay=False)
+level_up = Audio('sfx/level-up.mp3', autoplay=False)
+death_sound = Audio('sfx/death.wav', autoplay=False)
+timer_sound = Audio('sfx/timer.wav', autoplay=False)
+boing_sound = Audio('sfx/boing.wav', autoplay=False)
+pop_sound = Audio('sfx/pop.wav', autoplay=False)
+music = Audio('sfx/music.mp3', autoplay=True, loop=True)
+text = Text(f'Level: {level + 1}', origin=(2.5,-5), scale=3)
 
 class Platform(Entity):
     def __init__(self, position=(0,0,0), plat_id=0):
@@ -33,28 +41,39 @@ def reset():
 def update():
     global level, spring, p_timer
     if player.y < -3:
+        death_sound.play()
+        timer_sound.stop()
         reset()
     for plat in platforms:
         if player.intersects(plat):
             if plat.plat_id == 1:
+                death_sound.play()
+                timer_sound.stop()
                 reset()
             elif plat.plat_id == 2:
                 plat.timer -= time.dt
                 plat.color=rgb(178 + (1 - plat.timer) * 60, 178 + (1 - plat.timer) * 60, 178 + (1 - plat.timer) * 60)
                 if plat.timer <= 0:
+                    pop_sound.play()
                     plat.disable()
             elif plat.plat_id == 3:
                 player.jump_height = 15
                 player.gravity = 0.5
+                boing_sound.play()
                 spring = True
             elif plat.plat_id == 4:
                 level += 1
+                text.text = f'Level: {level + 1}'
+                level_up.play()
                 createLevel()
                 reset()
             elif plat.plat_id == 5:
                 p_timer = 5
+                timer_sound.stop()
         if plat.plat_id == 6:
             plat.enabled = p_timer > 0
+    if 0 < p_timer < 5 and not timer_sound.playing:
+        timer_sound.play()
     if p_timer > 0:
         p_timer -= time.dt
         if p_timer <= 0:
@@ -76,4 +95,10 @@ def createLevel():
 createLevel()
 Sky()
 player = FirstPersonController(gravity=0.75, jump_height=3, collider='box')
+old_jump = player.jump
+def new_jump():
+    old_jump()
+    if player.air_time == 0:
+        jump_sound.play()
+player.jump = new_jump
 app.run()
